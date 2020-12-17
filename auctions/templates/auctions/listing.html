@@ -1,0 +1,121 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %} {{ listing.title }}{% endblock %}
+
+{% block body %}
+        {%if listing.active == False%}
+            <div class="alert alert-info" role="alert" style="text-align: center; font-size: 30px;">Auction Closed!</div>
+        {%endif%}
+        <h1>Details</h1>
+        Category: {%for category in categories%}<a href="{%url 'category' category.category%}"> {{category.category}}</a> | {%empty%} None {%endfor%}
+        </ul>
+        <div class="card mb-3" style="max-width: 540px;">
+            <div class="row no-gutters">
+                <div class="col-md-4">
+                    {%if listing.image_url%}
+                        <img src="{{listing.image_url}}" class="card-img" alt="{{listing.title}}">
+                    {%else%}
+                        <img src="https://www.indiaspora.org/wp-content/uploads/2018/10/image-not-available-240x240.jpg" class="card-img-top">
+                    {%endif%}
+                </div>
+                <div class="col-md-8">
+                    <div class="card-body" >
+                        <h3 class="card-title">{{listing.title}}</h3>
+                        <p class="card-text"><small class="text-muted">listed by <b>{{listing.owner.username}}</b> | {{listing.date}}</small></p>
+                        {%if current_bid != listing.starting_bid%}
+                            {%if listing.active == True %}
+                                <h2 class="card-text" style="color: green;">Current bid : ${{current_bid}}</h2>
+                            {%elif listing.active == False%}
+                                <h2 class="card-text" style="color: red;">Sold : ${{current_bid}}</h2>
+                            {%endif%}
+                        {%else%}
+                            <h2 class="card-text" style="color: green;">Starting bid : ${{listing.starting_bid}}</h2>
+                        {%endif%}
+                        {% if user.is_authenticated %}
+                            {%if watchlist_action == 0 %}
+                                <a href="{% url 'watchlist' %}?action=add&list={{listing.id}}"><span class="badge badge-light">Add to watchlist</span></a>
+                            {%else%}
+                                <a href="{% url 'watchlist' %}?action=remove&list={{listing.id}}"><span class="badge badge-dark">Remove from watchlist</span></a>
+                            {%endif%}
+                        {%endif%}
+                    </div>
+                </div>
+            </div>
+            {% if user.is_authenticated %}
+                {%if user == listing.owner%}
+                    {% if listing.active == True%}
+                        <a href="{%url 'listing' listing.id%}?close=true" class="btn btn-primary" data-toggle="collapse" role="button">Close Auction</a>
+                    {%else%}
+                        <div class="alert alert-info" role="alert" style="text-align:center;">Winner : {{listing.winner}}</div>
+                    {%endif%}
+                {%elif user == listing.winner%}
+                    <div class="alert alert-info" role="alert" style="text-align:center;">YOU WON !</div>
+                
+                {%endif%}
+            {%endif%}
+        </div>
+
+        {% if user.is_authenticated and listing.active%}
+            {% if current_bids_n %}
+                {{current_bids_n}} bid(s) placed so far
+            {% else %}
+                No bid(s) so for
+            {%endif%}
+
+            {%if user != listing.owner%}
+                <form action="" method="POST">
+                    {%csrf_token%}
+                    <label>Your bid</label>
+                    <input type="number" name="bid" step="any" placeholder="0.00">
+                    <input class="btn btn-primary" type="submit" value="{{bid_message}}">
+                </form>
+            {%endif%}
+            <br />
+            {% if message %}
+                <div class="alert alert-{{message_type}}" role="alert" style="width: 500px;">
+                    {{message}}
+                </div>
+            {%endif%}
+        {%endif%}
+
+        <p class="description">
+            <h4>Description:</h4>
+            {{listing.description|linebreaks}}
+        </p>
+
+        <hr >
+        <h2>COMMENTS</h2>
+        <div class="accordion" id="accordionExample">
+        {%for comment in comments%}
+          <div class="card">
+            <div class="card-header" id="headingOne">
+              <h6 class="mb-0"><b>{{comment.user}}</b> on <i>{{comment.date}}</i></h6>
+            </div>
+            <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+              <div class="card-body">
+               {{comment.comment}}
+              </div>
+            </div>
+          </div>
+        {%empty%}
+          <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+            <div class="card-body">
+              No Comment
+            </div>
+          </div>
+        {%endfor%}
+        </div>
+
+        {%if can_comment%}
+            <hr />
+            <form action="" method="POST">
+                {%csrf_token%}
+                <label>Your Comment</label>
+                <div class="form-group">
+                    <textarea name="comment" class="form-control"></textarea>
+                </div>
+                
+                <input class="btn btn-primary" type="submit" value="comment">
+            </form>
+        {%endif%}
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "auctions/layout.html" %}
+{% block body %}
+        {%if listings%}
+            <h1>Active Listings</h1>
+        {%if category %}
+            <h4 style="color: red">{{category}} {%endif%}</h4>
+        {%endif%}
+        <div class="row row-cols-2 row-cols-md-3">
+        {% for listing in listings %}
+            <div class="col mb-4">
+                <div class="card" >
+                        {%if listing.image_url%}
+                            <img src="{{listing.image_url}}" class="card-img-top" alt="{{listing.title}}"
+                            width="200px" height="200px">
+                        {%else%}
+                            <img src="https://www.indiaspora.org/wp-content/uploads/2018/10/image-not-available-240x240.jpg" class="card-img-top" alt="{{listing.title}}"
+                            width="200px" height="200px">
+                        {%endif%}
+                    <div class="card-body">
+                        <h2 class="card-title">{{listing.title}}</h4>
+                        <h3 class="card-subtitle mb-2" style="color: green;">Price : ${{listing.starting_bid}}</h2>
+                        <p class="card-text">Created on {{listing.date}}</p>
+                        <p class="card-text" style="height: 50px; overflow:hidden;">{{listing.description}}</p>
+
+                        <br />
+                        <a href="{% url 'listing' listing.id %}" class="card-link btn btn-primary" data-toggle="collapse" role="button">View</a>
+                    </div>
+                </div>
+            </div>
+        {%empty%}
+            <h1>No Listing Available</h1>
+        {% endfor %}
+        </div>
+{% endblock %}
